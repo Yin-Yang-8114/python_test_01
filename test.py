@@ -72,7 +72,7 @@ def print_products():
         print(f"ID: {product['id']}, Name: {product['name']}, Price: {product['price']}")
 
 def create_order():
-    order = {"id": len(orders) + 1, "items": [], "total": 0, "status": "OPEN"}
+    order = {"id": len(read_orders_from_file()) + 1, "items": [], "total": 0, "status": "OPEN"}
     while True:
         print_products()
         product_id = validate_input("Enter product id or '6' to quite: ", "positive_num")
@@ -90,9 +90,9 @@ def create_order():
     if order["items"] == []:
         print("No items were added to the order. Order not created.")
         return
-    orders.append(order)
     print_order_price(discount_message,price_before_discount,price_after_discount)
-    save_orders_to_file()
+    orders.append(order)
+    add_order_to_file(order)
 
 
 def calculation_of_discount(price_before_discount):
@@ -116,11 +116,18 @@ def print_order_price(discount_message, price_before_discount, price_after_disco
 
 def save_orders_to_file():
     if "orders.json" not in os.listdir():
-        with open("orders.json", "w") as file:
+        with open("orders.json", "w") as file:  #
             json.dump(orders, file, indent=2)
     else:
         with open("orders.json", "w") as file:
             json.dump(orders, file, indent=2)
+
+def add_order_to_file(order):
+    orders = read_orders_from_file()
+    orders.append(order)
+    with open("orders.json", "w") as file:
+        json.dump(orders, file, indent=2)
+        
 
 def read_orders_from_file():
     try:
@@ -129,7 +136,6 @@ def read_orders_from_file():
     except FileNotFoundError:
         return []
     except json.JSONDecodeError:
-        print("Error: Failed to decode JSON from orders.json.")
         return []
         
 
@@ -150,17 +156,24 @@ def show_all_orders():
                 print(f"  Product ID: {item['product_id']}, quantity: {item['quantity']}")
 
 def find_order_by_id():
-    order_id = validate_input("please enter id to sherch: ","positive_num")
-    read_orders = read_orders_from_file()
-    if not read_orders:
-        print("No orders found.")
-    else:
-        for order in read_orders:
-            if order["id"] == order_id:
-                print(f"Order ID: {order['id']}, total: {order['total']}, status: {order['status']}")
-                for item in order['items']:
-                    print(f"  Product ID: {item['product_id']}, quantity: {item['quantity']}")
-                return
+    not_found = True
+    while not_found:
+        order_id = validate_input("please enter id to sherch: ","positive_num")
+        read_orders = read_orders_from_file()
+        if not read_orders:
+            return("No orders found.")
+        else:
+            for order in read_orders:
+                if order["id"] == order_id:
+                    print(f"Order ID: {order['id']}, total: {order['total']}, status: {order['status']}")
+                    for item in order['items']:
+                        print(f"  Product ID: {item['product_id']}, quantity: {item['quantity']}")
+                        not_found = False
+                    break
+            if not_found:
+                    print(f"Order ID: {order_id} not found.")
+                    not_found= input("want to try again?: ").strip().lower() == 'y'
+                    continue
 
 
 
@@ -173,11 +186,12 @@ def close_order():
         for order in read_orders:
             if order["id"] == order_id:
                 if order["status"] == "CLOSED":
-                    print(f"Order ID: {order['id']} is already closed.")
+                    print(f"Order ID: {order_id} is already closed.")
                 else:
                     order["status"] = "CLOSED"
-                    save_orders_to_file()
-                    print(f"Order ID: {order['id']} has been closed.")
+                    print(f"Order ID: {order_id} has been closed.")
+                with open("orders.json", "w") as file:
+                    json.dump(read_orders, file, indent=2)
                 return
         print(f"Order ID: {order_id} not found.")
 

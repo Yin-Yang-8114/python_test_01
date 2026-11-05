@@ -39,7 +39,7 @@ def main():
             case "4":
                 close_order()
             case "5":
-                pass # show_sales_report 
+                show_sales_report
             case "0":
                 break
         
@@ -127,7 +127,6 @@ def add_order_to_file(order):
     orders.append(order)
     with open("orders.json", "w") as file:
         json.dump(orders, file, indent=2)
-        
 
 def read_orders_from_file():
     try:
@@ -218,4 +217,16 @@ def validate_input(message, input_type):
                 return user_input
             else:
                 print("error empty string")
+    
+def show_sales_report():
+    read_orders = read_orders_from_file()
+    if not read_orders:
+        print("No orders found.")
+    else:
+        total_sales = sum(order['total'] for order in read_orders)
+        print(f"Total sales: {total_sales}")
+        for order in read_orders:
+            print(f"Order ID: {order['id']}, Total: {order['total']}, Status: {order['status']}")
+            for item in order['items']:
+                print(f"  Product ID: {item['product_id']}, Quantity: {item['quantity']}")
 main()

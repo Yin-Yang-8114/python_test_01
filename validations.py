@@ -1,6 +1,5 @@
-from functions import *
-from orders import *
-from storage import *
+from main import products
+
 
 def validate_that_product_exists(product_id):
     for product in products:

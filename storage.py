@@ -2,8 +2,7 @@ from functions import *
 from validations import * 
 from orders import *
 from main import *
-import json
-import os
+
 
 def save_orders_to_file():
     if "orders.json" not in os.listdir():

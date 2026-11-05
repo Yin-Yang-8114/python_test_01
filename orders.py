@@ -1,7 +1,6 @@
 from functions import *
-from validations import * 
-from storage import *
-from main import * 
+from validations import validate_input,validate_that_product_exists
+
 
 def create_order():
     order = {"id": len(read_orders_from_file()) + 1, "items": [], "total": 0, "status": "OPEN"}

@@ -1,5 +1,5 @@
 import json
-
+import os
 
 
 
@@ -33,11 +33,11 @@ def main():
             case "1":
                 create_order()
             case "2":
-                pass # show_all_orders
+                show_all_orders()
             case "3":
-                pass # find_order_by_id
+                find_order_by_id()
             case "4":
-                pass # close_order
+                close_order()
             case "5":
                 pass # show_sales_report 
             case "0":
@@ -76,7 +76,9 @@ def create_order():
     while True:
         print_products()
         product_id = validate_input("Enter product id or '6' to quite: ", "positive_num")
-        validate_that_product_exists(product_id)
+        if not validate_that_product_exists(product_id):
+            print("Product does not exist. Please try again.")
+            continue
         if product_id == 6:
             break
         quantity = validate_input("how much: ", "positive_num")
@@ -85,6 +87,9 @@ def create_order():
         price_before_discount = product_price * quantity
         price_after_discount, discount_message = calculation_of_discount(price_before_discount)
         order["total"] += price_after_discount
+    if order["items"] == []:
+        print("No items were added to the order. Order not created.")
+        return
     orders.append(order)
     print_order_price(discount_message,price_before_discount,price_after_discount)
     save_orders_to_file()
@@ -107,9 +112,15 @@ def print_order_price(discount_message, price_before_discount, price_after_disco
 
 
 
+
+
 def save_orders_to_file():
-    with open("orders.json", "w") as file:
-        json.dump(orders, file, indent=2)
+    if "orders.json" not in os.listdir():
+        with open("orders.json", "w") as file:
+            json.dump(orders, file, indent=2)
+    else:
+        with open("orders.json", "w") as file:
+            json.dump(orders, file, indent=2)
 
 def read_orders_from_file():
     try:
@@ -117,15 +128,58 @@ def read_orders_from_file():
             return json.load(file)
     except FileNotFoundError:
         return []
+    except json.JSONDecodeError:
+        print("Error: Failed to decode JSON from orders.json.")
+        return []
+        
 
 def validate_that_product_exists(product_id):
     for product in products:
-        if product["id"] == product_id:
+        if product["id"] == product_id or product_id == 6:
             return True
     return False
 
+def show_all_orders():
+    read_orders = read_orders_from_file()
+    if not read_orders:
+        print("No orders found.")
+    else:
+        for order in read_orders:
+            print(f"ordr ID: {order['id']},total: {order['total']},status: {order['status']}")
+            for item in order['items']:
+                print(f"  Product ID: {item['product_id']}, quantity: {item['quantity']}")
+
+def find_order_by_id():
+    order_id = validate_input("please enter id to sherch: ","positive_num")
+    read_orders = read_orders_from_file()
+    if not read_orders:
+        print("No orders found.")
+    else:
+        for order in read_orders:
+            if order["id"] == order_id:
+                print(f"Order ID: {order['id']}, total: {order['total']}, status: {order['status']}")
+                for item in order['items']:
+                    print(f"  Product ID: {item['product_id']}, quantity: {item['quantity']}")
+                return
 
 
+
+def close_order():
+    order_id = validate_input("please enter id to close: ","positive_num")
+    read_orders = read_orders_from_file()
+    if not read_orders:
+        print("No orders found.")
+    else:
+        for order in read_orders:
+            if order["id"] == order_id:
+                if order["status"] == "CLOSED":
+                    print(f"Order ID: {order['id']} is already closed.")
+                else:
+                    order["status"] = "CLOSED"
+                    save_orders_to_file()
+                    print(f"Order ID: {order['id']} has been closed.")
+                return
+        print(f"Order ID: {order_id} not found.")
 
 def validate_input(message, input_type):
     while True:
@@ -151,4 +205,3 @@ def validate_input(message, input_type):
             else:
                 print("error empty string")
 main()
-print(orders)

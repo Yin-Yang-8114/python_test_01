@@ -1,13 +1,1 @@
-[
-  {
-    "id": 1,
-    "items": [
-      {
-        "product_id": 3,
-        "quantity": 5
-      }
-    ],
-    "total": 3825.0,
-    "status": "OPEN"
-  }
-]
+[]
